@@ -1,0 +1,41 @@
+version: "3.4"
+services:
+  fast-app1: 
+    container_name: fast-app1
+    image: fast-app1
+    build: 
+      context: ./fast-app1
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=fast-app-1
+    ports:
+      - 5001:5001
+    networks:
+      - hack
+
+  fast-app2: 
+    container_name: fast-app2
+    image: fast-app2
+    build: 
+      context: ./fast-app2
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=fast-app-2
+    ports:
+      - 5002:5002
+    networks:
+      - hack
+
+
+  otel-collector: 
+    container_name: otel-collector
+    image: otel/opentelemetry-collector:latest
+    volumes:
+    - ./collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml 
+    networks:
+      - hack
+    command: ["--config=/etc/otel-collector-config.yaml"]
+
+networks:
+  hack:
+    driver: bridge

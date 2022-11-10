@@ -1,0 +1,19 @@
+FROM python:3.10.8
+#RUN pip install flask
+
+RUN mkdir /wip/
+WORKDIR /wip/
+
+COPY ./requirements.txt /wip/requirements.txt
+RUN pip install -r /wip/requirements.txt
+
+COPY ./src/ /wip/
+ENV FLASK_APP=server.py
+ENV FLASK_DEBUG=1
+
+RUN opentelemetry-bootstrap -a install
+
+#CMD flask run -h 0.0.0 -p 5000
+#CMD opentelemetry-instrument --traces_exporter console --metrics_exporter console flask run -h 0.0.0 -p 5000
+CMD opentelemetry-instrument flask run -h 0.0.0.0 -p 5000
+
