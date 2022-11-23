@@ -11,7 +11,7 @@ exporters:
     endpoint: "nbs-horizon-dev-cluster.apm.eu-west-2.aws.cloud.es.io:443"  
     headers:
       # Elastic APM Server secret token
-      Authorization: "Bearer bmEXe4fcK0GptBrOl6" 
+      Authorization: "Bearer <Bearer token>" 
 
 processors:
   batch:
