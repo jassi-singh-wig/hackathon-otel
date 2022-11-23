@@ -6,12 +6,25 @@ receivers:
 exporters:
   logging:
     loglevel: debug
+  
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+  
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
   otlp/elastic: 
-    # Elastic APM server https endpoint without the "https://" prefix
-    endpoint: "nbs-horizon-dev-cluster.apm.eu-west-2.aws.cloud.es.io:443"  
+    endpoint: "nbs-horizon-dev-cluster.apm.eu-west-2.aws.cloud.es.io:443"
     headers:
       # Elastic APM Server secret token
       Authorization: "Bearer <bearer token>" 
+
+  otlp/2:
+    endpoint: data-prepper:21890
+    tls:
+      insecure: true
 
 processors:
   batch:
@@ -19,13 +32,13 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [logging, otlp/elastic]
+      exporters: [jaeger, otlp/elastic, otlp/2]
       processors: [batch]
     metrics:
       receivers: [otlp]
-      exporters: [logging, otlp/elastic]
+      exporters: [logging]
       processors: [batch]
     logs:
       receivers: [otlp]
-      exporters: [logging, otlp/elastic]
+      exporters: [logging]
       processors: [batch]
