@@ -5,3 +5,5 @@ https://nbs-horizon-dev-cluster.kb.eu-west-2.aws.cloud.es.io:9243/app/apm/servic
 http://localhost:16686/search
 
 http://localhost:5601/
+
+![ServiceMap](./servicemap.png)
