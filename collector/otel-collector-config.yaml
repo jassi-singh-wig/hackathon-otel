@@ -16,7 +16,7 @@ exporters:
     endpoint: "0.0.0.0:8889"
 
   otlp/elastic: 
-    endpoint: "nbs-horizon-dev-cluster.apm.eu-west-2.aws.cloud.es.io:443"
+    endpoint: "<apm-server-url>:443"
     headers:
       # Elastic APM Server secret token
       Authorization: "Bearer <bearer token>" 
