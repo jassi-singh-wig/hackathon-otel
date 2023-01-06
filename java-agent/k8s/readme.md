@@ -2,7 +2,7 @@ Steps to be followed
 
 Trying java auto-instrumention with otel-collector on k8s set-up
 
-![Trace](/work/otel/hackathon-otel/java-agent/k8s/Trace.png)
+![Trace](./Trace.png)
 https://opentelemetry.io/docs/instrumentation/java/automatic/
 
 - cd agent
