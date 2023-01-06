@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app
+  labels:
+    app: sample-java-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-java-app
+  template:
+    metadata:
+      labels:
+        app: sample-java-app
+    spec:
+      initContainers:
+        - name: agent-container
+          image: agent-container:0.1.0
+          imagePullPolicy: Never
+          volumeMounts:
+            - name: java-agent
+              mountPath: /agent
+          command: [ "/bin/sh" ]
+          args: [ "-c", "cp -R /code/ /agent/" ]
+          
+      containers:
+        - name: app-container
+          image: sample-java-app:0.1.0
+          imagePullPolicy: Never
+          env:
+          # https://opentelemetry.io/docs/instrumentation/java/automatic/
+          # https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/envvars002.html
+            - name: JAVA_TOOL_OPTIONS 
+              value: "-javaagent:/otel/code/opentelemetry-javaagent.jar" 
+            - name: OTEL_SERVICE_NAME 
+              value: "sample-app"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector-svc.default.svc.cluster.local:4317"
+          volumeMounts:
+            - name: java-agent
+              mountPath: /otel 
+      volumes:
+      - name: java-agent
+        emptyDir: { }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: sample-java-app
+  name: app-svc
+spec:
+  ports:
+  - port: 4567
+    protocol: TCP
+    targetPort: 4567
+    nodePort: 30002
+  selector:
+    app: sample-java-app
+  type: NodePort
+---

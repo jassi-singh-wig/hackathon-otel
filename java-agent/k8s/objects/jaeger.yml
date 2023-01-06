@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+  name: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+      - image: jaegertracing/all-in-one:1.41.0
+        name: all-in-one
+        ports:
+            - containerPort: 14250 
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+  name: jaeger
+spec:
+  ports:
+  - port: 16686
+    protocol: TCP
+    targetPort: 16686
+    nodePort: 30001
+  selector:
+    app: jaeger
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+  name: jaeger-int
+spec:
+  ports:
+  - name: grpc
+    port: 14250
+    protocol: TCP
+    targetPort: 14250
+  selector:
+    app: jaeger

@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-cm
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+    exporters:
+      logging:
+        loglevel: debug
+      
+      jaeger:
+        endpoint: "jaeger-int.default.svc.cluster.local:14250"
+        tls:
+          insecure: true
+
+      otlp/elastic: 
+        endpoint: "<apm-server-url>:443"
+        headers:
+          # Elastic APM Server secret token
+          Authorization: "Bearer <bearer token>" 
+
+    processors:
+      batch:
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [jaeger]
+          processors: [batch]
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: otel-collector
+  name: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+      - image: otel/opentelemetry-collector:0.68.0
+        name: opentelemetry-collector
+        args:
+        - --config=/etc/config/otel-collector-config.yaml
+        ports:
+            - containerPort: 4318 # default network port for OTLP/HTTP
+            - containerPort: 4317 # default network port for OTLP/gRPC
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: otel-collector-cm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: otel-collector
+  name: otel-collector-svc
+spec:
+  ports:
+  - name: grpc
+    port: 4317
+    protocol: TCP
+    targetPort: 4317
+  - name: http
+    port: 4318
+    protocol: TCP
+    targetPort: 4318
+  selector:
+    app: otel-collector
