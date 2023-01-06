@@ -26,4 +26,4 @@ https://opentelemetry.io/docs/instrumentation/java/automatic/
 - kubectl get pods
 - Sample java app - localhost:4567
 - Traces - localhost:16686
-- To delete the cluster use (/kind delete cluster)
+- To delete the cluster use (./kind delete cluster)
