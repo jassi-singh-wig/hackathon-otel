@@ -12,3 +12,7 @@ nodes:
     hostPort: 4567
     listenAddress: "0.0.0.0" 
     protocol: TCP
+  - containerPort: 30003
+    hostPort: 4568
+    listenAddress: "0.0.0.0" 
+    protocol: TCP

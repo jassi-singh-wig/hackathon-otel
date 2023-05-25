@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sample-app
+  name: sample-app-good
   labels:
-    app: sample-java-app
+    app: sample-java-app-good
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sample-java-app
+      app: sample-java-app-good
   template:
     metadata:
       labels:
-        app: sample-java-app
+        app: sample-java-app-good
     spec:
       initContainers:
         - name: agent-container
@@ -25,8 +25,8 @@ spec:
           args: [ "-c", "cp -R /code/ /agent/" ]
           
       containers:
-        - name: app-container
-          image: sample-java-app:0.1.0
+        - name: app-container-good
+          image: sample-java-app:good
           imagePullPolicy: Never
           env:
           # https://opentelemetry.io/docs/instrumentation/java/automatic/
@@ -48,8 +48,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: sample-java-app
-  name: app-svc
+    app: sample-java-app-good
+  name: app-svc-good
 spec:
   ports:
   - port: 4567
@@ -57,6 +57,68 @@ spec:
     targetPort: 4567
     nodePort: 30002
   selector:
-    app: sample-java-app
+    app: sample-java-app-good
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-app-bad
+  labels:
+    app: sample-java-app-bad
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample-java-app-bad
+  template:
+    metadata:
+      labels:
+        app: sample-java-app-bad
+    spec:
+      initContainers:
+        - name: agent-container
+          image: agent-container:0.1.0
+          imagePullPolicy: Never
+          volumeMounts:
+            - name: java-agent
+              mountPath: /agent
+          command: [ "/bin/sh" ]
+          args: [ "-c", "cp -R /code/ /agent/" ]
+          
+      containers:
+        - name: app-container-bad
+          image: sample-java-app:bad
+          imagePullPolicy: Never
+          env:
+          # https://opentelemetry.io/docs/instrumentation/java/automatic/
+          # https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/envvars002.html
+            - name: JAVA_TOOL_OPTIONS 
+              value: "-javaagent:/otel/code/opentelemetry-javaagent.jar" 
+            - name: OTEL_SERVICE_NAME 
+              value: "sample-app"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector-svc.default.svc.cluster.local:4317"
+          volumeMounts:
+            - name: java-agent
+              mountPath: /otel 
+      volumes:
+      - name: java-agent
+        emptyDir: { }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: sample-java-app-bad
+  name: app-svc-bad
+spec:
+  ports:
+  - port: 4568
+    protocol: TCP
+    targetPort: 4567
+    nodePort: 30003
+  selector:
+    app: sample-java-app-bad
   type: NodePort
 ---
